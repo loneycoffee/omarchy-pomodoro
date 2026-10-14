@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "loneycoffee.pomodoro",
+  "name": "Pomodoro",
+  "version": "1.0.0",
+  "author": "loneycoffee",
+  "homepage": "https://github.com/loneycoffee/omarchy-pomodoro",
+  "description": "A pomofocus.io-style Pomodoro timer for the bar: Pomodoro / Short Break / Long Break, a task list with estimated and actual pomodoros, switchable timer profiles, alarm and ticking sounds, desktop notifications and a focus report. Colors follow the active Omarchy theme. Toggle the panel with: omarchy-shell shell toggle loneycoffee.pomodoro",
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Pomodoro",
+    "description": "Pomodoro timer with tasks; shows the time left while a round runs",
+    "category": "Time",
+    "allowMultiple": false,
+    "defaultSection": "center"
+  }
+}

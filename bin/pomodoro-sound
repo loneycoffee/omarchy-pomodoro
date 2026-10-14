@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# Plays the plugin's sounds for the shell service.
+#
+#   pomodoro-sound play <file> <volume 0-100> [repeat]   one-shot alarm
+#   pomodoro-sound loop <file> <volume 0-100>            ticking until killed
+#
+# The service stops a sound by terminating this script. The trap forwards
+# that to the player child, so a ten-second ticking clip stops at once
+# instead of running out after the timer was paused.
+
+set -u
+
+mode=${1:-}
+file=${2:-}
+volume=${3:-50}
+repeat=${4:-1}
+
+[[ -f $file ]] || exit 1
+
+gain=$(awk -v v="$volume" 'BEGIN { if (v < 0) v = 0; if (v > 100) v = 100; printf "%.3f", v / 100 }')
+
+# The player is backgrounded as a plain command, not as a backgrounded
+# function (which would fork a subshell), so $! is the player itself and the
+# trap's kill actually silences it.
+child=""
+start_player() {
+  if command -v pw-play >/dev/null 2>&1; then
+    pw-play --volume "$gain" "$file" &
+  elif command -v paplay >/dev/null 2>&1; then
+    paplay --volume "$(awk -v g="$gain" 'BEGIN { printf "%d", g * 65536 }')" "$file" &
+  else
+    aplay -q "$file" &
+  fi
+  child=$!
+}
+
+trap '[[ -n $child ]] && kill "$child" 2>/dev/null; exit 0' TERM INT HUP
+
+case $mode in
+play)
+  for ((i = 0; i < repeat; i++)); do
+    start_player
+    wait "$child"
+  done
+  ;;
+loop)
+  while :; do
+    started=$SECONDS
+    start_player
+    wait "$child"
+    # No audio server: back off instead of spinning.
+    ((SECONDS - started < 1)) && sleep 2
+  done
+  ;;
+*)
+  exit 2
+  ;;
+esac
