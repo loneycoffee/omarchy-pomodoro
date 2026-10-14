@@ -12,15 +12,15 @@ import "components"
 // starts or pauses without opening anything.
 //
 // There is one of these per monitor; all of them render the same service.
-// Summon from a keybinding with:  omarchy-shell shell toggle loneycoffee.pomodoro
+// Summon from a keybinding with:  omarchy-shell shell toggle pomodoro
 Panel {
   id: root
 
-  moduleName: "loneycoffee.pomodoro"
+  moduleName: "pomodoro"
   // The service owns the plugin's IPC target; one per bar would collide.
   manageIpc: false
 
-  readonly property string pluginId: "loneycoffee.pomodoro"
+  readonly property string pluginId: "pomodoro"
 
   // ---------------------------------------------------------- the service
 

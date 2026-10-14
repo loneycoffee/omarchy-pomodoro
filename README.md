@@ -46,7 +46,7 @@ omarchy plugin add https://github.com/loneycoffee/omarchy-pomodoro.git --enable
 ```
 
 Omarchy clones the repository into
-`~/.config/omarchy/plugins/loneycoffee.pomodoro`, asks you to confirm, and
+`~/.config/omarchy/plugins/pomodoro`, asks you to confirm, and
 then asks which bar section to put the widget in. Plugins run as normal code
 inside your shell, so feel free to read the source before you confirm.
 
@@ -55,9 +55,9 @@ inside your shell, so feel free to read the source before you confirm.
 
 ```sh
 git clone https://github.com/loneycoffee/omarchy-pomodoro.git \
-  ~/.config/omarchy/plugins/loneycoffee.pomodoro
+  ~/.config/omarchy/plugins/pomodoro
 omarchy-shell shell rescanPlugins
-omarchy plugin enable loneycoffee.pomodoro --section center
+omarchy plugin enable pomodoro --section center
 ```
 
 </details>
@@ -68,7 +68,7 @@ The widget is added to the end of the section you picked. To put it right next
 to the clock:
 
 ```sh
-omarchy bar move loneycoffee.pomodoro --after omarchy.clock
+omarchy bar move pomodoro --after omarchy.clock
 ```
 
 ### 3. Add keybindings (optional)
@@ -77,8 +77,8 @@ Add these lines to `~/.config/hypr/bindings.lua`. Hyprland reloads them when
 you save.
 
 ```lua
-o.bind("SUPER + ALT + P", "Pomodoro", "omarchy-shell shell toggle loneycoffee.pomodoro")
-o.bind("SUPER + ALT + SHIFT + P", "Pomodoro start/pause", "omarchy-shell loneycoffee.pomodoro toggle")
+o.bind("SUPER + ALT + P", "Pomodoro", "omarchy-shell shell toggle pomodoro")
+o.bind("SUPER + ALT + SHIFT + P", "Pomodoro start/pause", "omarchy-shell pomodoro toggle")
 ```
 
 Both combinations are free in the default Omarchy bindings. Check yours with
@@ -131,13 +131,13 @@ The plugin listens for IPC commands, which is handy for keybindings, scripts
 and status bars:
 
 ```sh
-omarchy-shell loneycoffee.pomodoro toggle              # start / pause
-omarchy-shell loneycoffee.pomodoro start                # also: pause, skip, reset
-omarchy-shell loneycoffee.pomodoro mode short           # pomodoro | short | long
-omarchy-shell loneycoffee.pomodoro profile "Deep Work"  # switch profile by name
-omarchy-shell loneycoffee.pomodoro addTask "Write the report"
-omarchy-shell loneycoffee.pomodoro show settings        # open on main | settings | report
-omarchy-shell loneycoffee.pomodoro status               # JSON, e.g. for scripts
+omarchy-shell pomodoro toggle              # start / pause
+omarchy-shell pomodoro start               # also: pause, skip, reset
+omarchy-shell pomodoro mode short          # pomodoro | short | long
+omarchy-shell pomodoro profile "Deep Work" # switch profile by name
+omarchy-shell pomodoro addTask "Write the report"
+omarchy-shell pomodoro show settings       # open on main | settings | report
+omarchy-shell pomodoro status              # JSON, e.g. for scripts
 ```
 
 `status` prints:
@@ -149,7 +149,7 @@ omarchy-shell loneycoffee.pomodoro status               # JSON, e.g. for scripts
 ## Updating
 
 ```sh
-omarchy plugin update loneycoffee.pomodoro
+omarchy plugin update pomodoro
 omarchy restart shell
 ```
 
@@ -159,8 +159,8 @@ keep its old code. Restarting the shell makes sure the update is in use.
 ## Uninstalling
 
 ```sh
-omarchy plugin remove loneycoffee.pomodoro
-rm -rf ~/.local/state/omarchy/plugins/loneycoffee.pomodoro   # tasks, profiles and report
+omarchy plugin remove pomodoro
+rm -rf ~/.local/state/omarchy/plugins/pomodoro   # tasks, profiles and report
 ```
 
 ## Troubleshooting
@@ -168,7 +168,7 @@ rm -rf ~/.local/state/omarchy/plugins/loneycoffee.pomodoro   # tasks, profiles a
 - **No sound**: check that `pw-play /usr/share/sounds/alsa/Front_Center.wav`
   plays something, and that the alarm volume in Settings isn't 0.
 - **The keybinding does nothing**: the panel lives in the bar widget, so the
-  widget has to be in the bar (`omarchy bar move loneycoffee.pomodoro --after omarchy.clock`).
+  widget has to be in the bar (`omarchy bar move pomodoro --after omarchy.clock`).
 - **A change or update isn't showing**: `omarchy restart shell`.
 
 ## How it works
@@ -183,7 +183,7 @@ rm -rf ~/.local/state/omarchy/plugins/loneycoffee.pomodoro   # tasks, profiles a
 | `tools/gen-sounds.py` | Generates the sounds in `sounds/` (Python standard library only) |
 
 Your data is saved in
-`~/.local/state/omarchy/plugins/loneycoffee.pomodoro/state.json`.
+`~/.local/state/omarchy/plugins/pomodoro/state.json`.
 Notifications go through `omarchy-notification-send`.
 
 To regenerate the sounds after changing the generator:

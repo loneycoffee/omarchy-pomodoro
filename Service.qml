@@ -24,7 +24,7 @@ Item {
   property var manifest: null
   property string omarchyPath: ""
 
-  readonly property string pluginId: "loneycoffee.pomodoro"
+  readonly property string pluginId: "pomodoro"
   readonly property string home: Quickshell.env("HOME")
   readonly property string pluginDir: Qt.resolvedUrl(".").toString().replace(/^file:\/\//, "")
   readonly property string stateDir: home + "/.local/state/omarchy/plugins/" + pluginId
@@ -627,15 +627,15 @@ Item {
 
   // ------------------------------------------------------------------- IPC
   //
-  //   omarchy-shell loneycoffee.pomodoro toggle        start / pause
-  //   omarchy-shell loneycoffee.pomodoro skip          finish the round now
-  //   omarchy-shell loneycoffee.pomodoro mode short    pomodoro | short | long
-  //   omarchy-shell loneycoffee.pomodoro addTask "Write report"
-  //   omarchy-shell loneycoffee.pomodoro status        JSON for scripts
-  //   omarchy-shell loneycoffee.pomodoro show settings open the panel on a view
-  //   omarchy-shell shell toggle loneycoffee.pomodoro  open the panel
+  //   omarchy-shell pomodoro toggle              start / pause
+  //   omarchy-shell pomodoro skip                finish the round now
+  //   omarchy-shell pomodoro mode short          pomodoro | short | long
+  //   omarchy-shell pomodoro addTask "Write report"
+  //   omarchy-shell pomodoro status              JSON for scripts
+  //   omarchy-shell pomodoro show settings       open the panel on a view
+  //   omarchy-shell shell toggle pomodoro        open the panel
   IpcHandler {
-    target: "loneycoffee.pomodoro"
+    target: "pomodoro"
 
     function toggle(): void { root.toggleTimer() }
     function start(): void { root.start() }
