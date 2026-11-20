@@ -97,6 +97,7 @@ then shows the time left. If nothing shows up, run `omarchy restart shell`.
 |---|---|
 | Left click | Open the panel |
 | Right click | Start / pause, without opening anything |
+| Middle click | Show / hide the floating window |
 
 While a round is running, the bar shows the time left in the mode's color. To
 show the time all the time, or never, change **Settings → Display → Bar label**.
@@ -113,6 +114,7 @@ show the time all the time, or never, change **Settings → Display → Bar labe
 | `x` | Check off the selected task |
 | `a` / `e` | Add a task / edit the selected task |
 | `s` / `p` | Settings / report |
+| `w` | Pop out to the floating window (in the window: close it) |
 | `Esc` | Go back, then close |
 
 - **Tasks:** click **Add Task**, type what you are working on, set the
@@ -124,6 +126,33 @@ show the time all the time, or never, change **Settings → Display → Bar labe
   section edits the selected profile; every other setting applies to all
   profiles.
 - **Pomodoro count:** click `#N` under the timer to reset it.
+
+### Floating window
+
+The whole panel also runs as a normal window, to keep the timer on screen
+while you work. Open it with the pop-out button in the panel header, `w` in
+the panel, a middle click on the bar timer, or
+`omarchy-shell pomodoro toggleWindow`. It shares its state with the bar, so
+both stay in sync. Close it with `Esc` or `Super + W`.
+
+Hyprland tiles new windows, so add a rule to `~/.config/hypr/custom.lua` to
+float it:
+
+```lua
+o.window({ class = "^org.quickshell$", title = "^Pomodoro$" }, { float = true })
+o.window({ class = "^org.quickshell$", title = "^Pomodoro$" }, { size = { 480, 660 } })
+```
+
+`Super + O` pins it so it follows you across workspaces.
+
+To reach it from the Omarchy menu (Trigger → Pomodoro), add to
+`~/.config/omarchy/extensions/omarchy-menu.jsonc`:
+
+```jsonc
+"trigger.pomodoro": {"label":"Pomodoro","aliases":["pomodoro","timer"]},
+"trigger.pomodoro.window": {"label":"Floating Window","action":"omarchy-shell pomodoro toggleWindow","checked":"omarchy-shell pomodoro status | grep -q '\"window\":true'"},
+"trigger.pomodoro.toggle": {"label":"Start / Pause","action":"omarchy-shell pomodoro toggle"},
+```
 
 ## Scripting
 
@@ -137,13 +166,15 @@ omarchy-shell pomodoro mode short          # pomodoro | short | long
 omarchy-shell pomodoro profile "Deep Work" # switch profile by name
 omarchy-shell pomodoro addTask "Write the report"
 omarchy-shell pomodoro show settings       # open on main | settings | report
+omarchy-shell pomodoro toggleWindow        # floating window on / off
+omarchy-shell pomodoro openWindow          # also: closeWindow
 omarchy-shell pomodoro status              # JSON, e.g. for scripts
 ```
 
 `status` prints:
 
 ```json
-{"mode":"pomodoro","state":"running","remaining":"18:24","remainingSeconds":1104,"pomodoro":3,"profile":"Classic","task":"Write the project proposal"}
+{"mode":"pomodoro","state":"running","remaining":"18:24","remainingSeconds":1104,"pomodoro":3,"profile":"Classic","task":"Write the project proposal","window":false}
 ```
 
 ## Updating

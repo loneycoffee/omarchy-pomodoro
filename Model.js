@@ -26,6 +26,7 @@ var GLYPHS = {
   reset: 0xf0450,
   settings: 0xf08bb,  // md-cog_outline
   report: 0xf0128,    // md-chart_bar
+  popout: 0xf03cc,    // md-open_in_new
   back: 0xf004d,
   check: 0xf05e0,     // md-check_circle
   unchecked: 0xf0130, // md-checkbox_blank_circle_outline

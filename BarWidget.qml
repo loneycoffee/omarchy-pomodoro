@@ -9,7 +9,8 @@ import "components"
 //
 // The bar shows the mode glyph and, while a round is going, the time left in
 // the mode's color. Left click opens the pomofocus.io-style panel, right click
-// starts or pauses without opening anything.
+// starts or pauses without opening anything, middle click toggles the
+// floating window.
 //
 // There is one of these per monitor; all of them render the same service.
 // Summon from a keybinding with:  omarchy-shell shell toggle pomodoro
@@ -79,11 +80,15 @@ Panel {
       if (root.svc.running) s += " · running"
       else if (root.svc.paused) s += " · paused"
       if (root.svc.activeTask) s += "\n" + root.svc.activeTask.title
-      return s + "\nLeft: open · Right: start / pause"
+      return s + "\nLeft: open · Right: start / pause · Middle: floating window"
     }
     onPressed: function(b) {
       if (b === Qt.RightButton) {
         if (root.svc) root.svc.toggleTimer()
+        return
+      }
+      if (b === Qt.MiddleButton) {
+        if (root.svc) root.svc.toggleWindow()
         return
       }
       root.toggle()
@@ -92,64 +97,25 @@ Panel {
 
   // ------------------------------------------------------------- the panel
 
-  property string view: "main"   // main | settings | report
   property string pendingView: ""
 
   Connections {
     target: root.svc
     function onViewRequested(view) {
-      if (root.opened) root.showView(view)
+      if (root.opened) content.showView(view)
       else root.pendingView = view
     }
   }
 
-  readonly property bool typing: mainView.typing || settingsView.typing
-
   function open() {
-    root.view = root.pendingView !== "" ? root.pendingView : "main"
+    content.reset(root.pendingView !== "" ? root.pendingView : "main")
     root.pendingView = ""
-    flick.contentY = 0
-    reportView.refresh()
     root.controller.show()
   }
 
   function close() {
-    confirm.dismiss()
-    mainView.cancelTransient()
+    content.dismiss()
     root.controller.hide()
-  }
-
-  function showView(v) {
-    confirm.dismiss()
-    mainView.cancelTransient()
-    root.view = v
-    if (v === "report") reportView.refresh()
-    flick.contentY = 0
-    keyCatcher.forceActiveFocus()
-  }
-
-  function askConfirm(message, confirmText, action) {
-    confirm.message = message
-    confirm.confirmText = confirmText
-    confirm.action = action
-    confirm.selectedIndex = 1
-    confirm.opened = true
-  }
-
-  function handleKey(text) {
-    if (!root.ready) return
-    if (root.view !== "main") return
-    switch (text) {
-    case "n": mainView.requestSkip(); break
-    case "r": mainView.requestReset(); break
-    case "1": mainView.requestMode("pomodoro"); break
-    case "2": mainView.requestMode("short"); break
-    case "3": mainView.requestMode("long"); break
-    case "a": mainView.beginNew(); break
-    case "e": if (root.svc.activeTask) mainView.beginEdit(root.svc.activeTask); break
-    case "s": root.showView("settings"); break
-    case "p": root.showView("report"); break
-    }
   }
 
   KeyboardPanel {
@@ -158,12 +124,9 @@ Panel {
     bar: root.bar
     owner: root
     open: root.opened
-    focusTarget: keyCatcher
+    focusTarget: content.focusItem
     contentWidth: popup.fittedContentWidth(Style.space(440))
-    contentHeight: popup.fittedContentHeight(
-      root.view === "settings" ? settingsView.implicitHeight
-      : root.view === "report" ? reportView.implicitHeight
-      : mainView.implicitHeight)
+    contentHeight: popup.fittedContentHeight(content.viewHeight)
 
     // Wash the card in the mode color, faintly, the way pomofocus.io turns
     // its whole page red, teal or blue.
@@ -171,125 +134,22 @@ Panel {
       anchors.fill: parent
       anchors.margins: -popup.padding
       radius: Style.cornerRadius
-      color: Util.alpha(theme.mode, root.view === "main" ? 0.06 : 0.0)
+      color: Util.alpha(theme.mode, content.view === "main" ? 0.06 : 0.0)
       Behavior on color { ColorAnimation { duration: 400 } }
     }
 
-    PanelKeyCatcher {
-      id: keyCatcher
+    PomodoroContent {
+      id: content
       anchors.fill: parent
-      blocked: root.typing
-
-      onCloseRequested: {
-        if (confirm.opened) { confirm.dismiss(); return }
-        if (mainView.cancelTransient()) return
-        if (root.view !== "main") { root.showView("main"); return }
-        root.close()
-      }
-      onActivateRequested: {
-        if (confirm.opened) {
-          if (confirm.selectedIndex === 0) confirm.dismiss()
-          else confirm.accept()
-          return
-        }
-        if (root.view === "main" && root.svc) root.svc.toggleTimer()
-      }
-      onMoveRequested: function(dx, dy) {
-        if (confirm.opened) {
-          if (dx !== 0) confirm.selectedIndex = confirm.selectedIndex === 0 ? 1 : 0
-          return
-        }
-        if (root.view === "main" && dy !== 0 && root.svc) root.svc.cycleTask(dy)
-        else if (dy !== 0) flick.flick(0, dy > 0 ? -1200 : 1200)
-      }
-      onDeleteRequested: {
-        if (confirm.opened || root.view !== "main" || !root.svc || !root.svc.activeTask) return
-        root.svc.toggleTaskDone(root.svc.activeTask.id)
-      }
+      svc: root.svc
+      t: theme
+      confirmInset: popup.padding / 2
+      onCloseRequested: root.close()
       onTabRequested: function(direction) { root.switchPanel(direction) }
-      onTextKey: function(text) {
-        if (confirm.opened) return
-        root.handleKey(text)
-      }
-
-      Flickable {
-        id: flick
-        anchors.fill: parent
-        contentWidth: width
-        contentHeight: root.view === "settings" ? settingsView.implicitHeight
-          : root.view === "report" ? reportView.implicitHeight
-          : mainView.implicitHeight
-        clip: true
-        boundsBehavior: Flickable.StopAtBounds
-        interactive: contentHeight > height
-
-        MainView {
-          id: mainView
-          visible: root.view === "main"
-          width: flick.width
-          svc: root.svc
-          t: theme
-          onSettingsRequested: root.showView("settings")
-          onReportRequested: root.showView("report")
-          onConfirmRequested: function(message, confirmText, action) { root.askConfirm(message, confirmText, action) }
-          onFocusReturned: keyCatcher.forceActiveFocus()
-        }
-
-        SettingsView {
-          id: settingsView
-          visible: root.view === "settings"
-          width: flick.width
-          svc: root.svc
-          t: theme
-          onBackRequested: root.showView("main")
-          onConfirmRequested: function(message, confirmText, action) { root.askConfirm(message, confirmText, action) }
-        }
-
-        ReportView {
-          id: reportView
-          visible: root.view === "report"
-          width: flick.width
-          svc: root.svc
-          t: theme
-          onBackRequested: root.showView("main")
-          onConfirmRequested: function(message, confirmText, action) { root.askConfirm(message, confirmText, action) }
-        }
-      }
-
-      Text {
-        anchors.centerIn: parent
-        visible: !root.ready
-        textFormat: Text.PlainText
-        text: "Starting the Pomodoro service…"
-        color: theme.dim
-        font.family: theme.fontFamily
-        font.pixelSize: Style.font.body
-      }
-
-      ConfirmDialog {
-        id: confirm
-        anchors.fill: parent
-        anchors.margins: -popup.padding / 2
-        property var action: null
-        cancelText: "Cancel"
-        background: Color.popups.background
-        foreground: theme.fg
-        selectedText: theme.mode
-        fontFamily: theme.fontFamily
-
-        function dismiss() {
-          confirm.opened = false
-          confirm.action = null
-        }
-
-        function accept() {
-          var fn = confirm.action
-          confirm.dismiss()
-          if (typeof fn === "function") fn()
-        }
-
-        onCanceled: dismiss()
-        onConfirmed: accept()
+      // Hand the card over to the floating window.
+      onPopOutRequested: {
+        root.close()
+        if (root.svc) root.svc.openWindow()
       }
     }
   }

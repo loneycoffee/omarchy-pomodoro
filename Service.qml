@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "Model.js" as Model
+import "components"
 
 // The Pomodoro engine, mounted once for the shell.
 //
@@ -547,6 +548,23 @@ Item {
     onTriggered: root.tickPreview = false
   }
 
+  // -------------------------------------------------------- floating window
+
+  // The Pomodoro card as a normal window. One for the whole shell, loaded
+  // only while open; it renders this service like the bar popups do.
+  property bool windowOpen: false
+
+  function openWindow() { root.windowOpen = true }
+  function closeWindow() { root.windowOpen = false }
+  function toggleWindow() { root.windowOpen = !root.windowOpen }
+
+  LazyLoader {
+    active: root.windowOpen
+    component: Component {
+      FloatWindow { svc: root }
+    }
+  }
+
   // ---------------------------------------------------------- notification
 
   function notify(headline, body, glyphMode) {
@@ -633,6 +651,8 @@ Item {
   //   omarchy-shell pomodoro addTask "Write report"
   //   omarchy-shell pomodoro status              JSON for scripts
   //   omarchy-shell pomodoro show settings       open the panel on a view
+  //   omarchy-shell pomodoro toggleWindow        floating window on / off
+  //   omarchy-shell pomodoro openWindow          (and closeWindow)
   //   omarchy-shell shell toggle pomodoro        open the panel
   IpcHandler {
     target: "pomodoro"
@@ -660,6 +680,9 @@ Item {
       if (root.shell && typeof root.shell.isPluginOpen === "function" && root.shell.isPluginOpen(root.pluginId)) return "ok"
       return root.shell && root.shell.summon(root.pluginId, "") ? "ok" : "panel unavailable"
     }
+    function toggleWindow(): void { root.toggleWindow() }
+    function openWindow(): void { root.openWindow() }
+    function closeWindow(): void { root.closeWindow() }
     function status(): string {
       return JSON.stringify({
         mode: root.mode,
@@ -668,7 +691,8 @@ Item {
         remainingSeconds: Math.ceil(root.remainingMs / 1000),
         pomodoro: root.pomoCount + (root.mode === "pomodoro" ? 1 : 0),
         profile: root.profile.name,
-        task: root.activeTask ? root.activeTask.title : ""
+        task: root.activeTask ? root.activeTask.title : "",
+        window: root.windowOpen
       })
     }
   }

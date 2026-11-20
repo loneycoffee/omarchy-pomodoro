@@ -16,12 +16,15 @@ Column {
   property string editingId: ""
   property var draft: ({ title: "", note: "", est: 1, act: 0, noteOpen: false })
   property bool menuOpen: false
+  // Inside the floating window there is nothing to pop out to.
+  property bool floating: false
 
   readonly property bool typing: !!activeEditor && activeEditor.typing
   property var activeEditor: null
 
   signal settingsRequested()
   signal reportRequested()
+  signal popOutRequested()
   signal confirmRequested(string message, string confirmText, var action)
   signal focusReturned()
 
@@ -189,6 +192,15 @@ Column {
       anchors.right: parent.right
       anchors.verticalCenter: parent.verticalCenter
       spacing: Style.spacing.xxs
+
+      PanelActionButton {
+        visible: !root.floating
+        iconText: Model.glyph("popout")
+        foreground: root.t.dim
+        fontFamily: root.t.fontFamily
+        tooltipText: "Floating window (w)"
+        onClicked: root.popOutRequested()
+      }
 
       PanelActionButton {
         iconText: Model.glyph("report")
